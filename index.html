@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estimación COCOMO Completa</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(45deg, #1d2b64, #f8a52e);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        header {
+            background-color: #1d2b64;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            letter-spacing: 3px;
+        }
+
+        .calculator {
+            width: 80%;
+            max-width: 600px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(5px);
+            border: 2px solid #fff;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 1.2em;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            margin-top: 5px;
+            border: none;
+            border-radius: 5px;
+            background: #fff;
+            color: #333;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: 0.3s ease-in-out;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 15px rgba(255, 165, 0, 0.8);
+            border-color: #ffa500;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #ff5f6d, #ffc371);
+            color: white;
+            font-size: 1.5em;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4);
+            transition: 0.3s ease-in-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.3);
+            transition: 0.4s;
+            transform: scaleX(0);
+            transform-origin: right;
+        }
+
+        button:hover::before {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+
+        button:hover {
+            background: linear-gradient(45deg, #ffa500, #ff5f6d);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .results {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            display: none;
+            color: #fff;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .results h2 {
+            margin-top: 0;
+            font-size: 1.8em;
+            color: #ffa500;
+        }
+
+        .results p {
+            font-size: 1.2em;
+            line-height: 1.6;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>ESTIMACION DE ESFUERZO Y COSTO CON COCOMO</h1>
+    </header>
+
+    <div class="calculator">
+        <form id="cocomoForm">
+            <div class="form-group">
+                <label for="entrada">Número de Entradas:</label>
+                <input type="number" id="entrada" name="entrada" step="any" required>
+            </div>
+
+            <div class="form-group">
+                <label for="salida">Número de Salidas:</label>
+                <input type="number" id="salida" name="salida" step="any" required>
+            </div>
+
+            <div class="form-group">
+                <label for="factor_organico">Factor Orgánico (50-80):</label>
+                <input type="number" id="factor_organico" name="factor_organico" min="50" max="80" step="any" required>
+            </div>
+
+            <div class="form-group">
+                <label for="factor_semi_aplicado">Factor Semi Acoplado (81-100):</label>
+                <input type="number" id="factor_semi_aplicado" name="factor_semi_aplicado" min="81" max="100" step="any" required>
+            </div>
+
+            <div class="form-group">
+                <label for="factor_acoplado">Factor Acoplado (101-150):</label>
+                <input type="number" id="factor_acoplado" name="factor_acoplado" min="101" max="150" step="any" required>
+            </div>
+
+            <div class="form-group">
+                <label for="tipo_proyecto">Selecciona el tipo de proyecto:</label>
+                <select name="tipo_proyecto" id="tipo_proyecto" required>
+                    <option value="organico">Orgánico</option>
+                    <option value="semi_aplicado">Semi-Aplicado</option>
+                    <option value="acoplado">Acoplado</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="salario">Salario por persona:</label>
+                <input type="number" id="salario" name="salario" step="any" required>
+            </div>
+
+            <button type="submit">Calcular</button>
+        </form>
+
+        <div id="resultados" class="results">
+            <h2>Resultados</h2>
+            <p><strong>Total:</strong> <span id="totalResult"></span></p>
+            <p><strong>LDC:</strong> <span id="ldcResult"></span></p>
+            <p><strong>MLDC:</strong> <span id="mldcResult"></span></p>
+            <p><strong>Esfuerzo (E):</strong> <span id="esfuerzoResult"></span></p>
+            <p><strong>Tiempo de Desarrollo (TD):</strong> <span id="tdResult"></span></p>
+            <p><strong>Personal Necesario (CP):</strong> <span id="cpResult"></span></p>
+            <p><strong>Estimación de la Productividad (P):</strong> <span id="pResult"></span></p>
+            <p><strong>Costo del Software:</strong> <span id="costoResult"></span> Bs</p>
+            <p><strong>Costo por Línea de Código (LDC):</strong> <span id="costoLDCResult"></span> Bs</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('cocomoForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+
+            const entrada = parseFloat(document.getElementById('entrada').value);
+            const salida = parseFloat(document.getElementById('salida').value);
+            const factorOrganico = parseFloat(document.getElementById('factor_organico').value);
+            const factorSemiAplicado = parseFloat(document.getElementById('factor_semi_aplicado').value);
+            const factorAcoplado = parseFloat(document.getElementById('factor_acoplado').value);
+            const tipoProyecto = document.getElementById('tipo_proyecto').value;
+            const salario = parseFloat(document.getElementById('salario').value);
+
+
+            if (!(50 <= factorOrganico && factorOrganico <= 80)) {
+                alert("El factor Orgánico debe estar entre 50 y 80.");
+                return;
+            }
+            if (!(81 <= factorSemiAplicado && factorSemiAplicado <= 100)) {
+                alert("El factor Semi Aplicado debe estar entre 81 y 100.");
+                return;
+            }
+            if (!(101 <= factorAcoplado && factorAcoplado <= 150)) {
+                alert("El factor Acoplado debe estar entre 101 y 150.");
+                return;
+            }
+
+            // Cálculos
+            const total = entrada + salida;
+
+            let ldc;
+            if (tipoProyecto === 'organico') {
+                ldc = factorOrganico * total;
+            } else if (tipoProyecto === 'semi_aplicado') {
+                ldc = factorSemiAplicado * total;
+            } else if (tipoProyecto === 'acoplado') {
+                ldc = factorAcoplado * total;
+            }
+
+            const mldc = ldc / 1000;
+
+            const COCOMO_CONSTANTS = {
+                'organico': { a: 2.4, b: 1.05, c: 2.5, d: 0.38 },
+                'semi_aplicado': { a: 3.0, b: 1.12, c: 2.5, d: 0.35 },
+                'acoplado': { a: 3.6, b: 1.20, c: 2.5, d: 0.32 }
+            };
+
+            const a = COCOMO_CONSTANTS[tipoProyecto].a;
+            const b = COCOMO_CONSTANTS[tipoProyecto].b;
+            const c = COCOMO_CONSTANTS[tipoProyecto].c;
+            const d = COCOMO_CONSTANTS[tipoProyecto].d;
+
+            const esfuerzo = a * (mldc ** b);
+            const esfuerzoRedondeado = Math.round(esfuerzo);
+            const esfuerzoStr = `${esfuerzoRedondeado} PERSONAS MES`;
+
+            const td = c * (esfuerzo ** d);
+            const tdRedondeado = Math.round(td);
+            const tdStr = `${tdRedondeado} MESES DE TRABAJO`;
+
+            const cp = Math.round(esfuerzo / td);
+            const cpStr = `${cp} PERSONAS`;
+
+            const p = Math.round(ldc / esfuerzo);
+            const pStr = `${p} LDC CADA MES A REALIZAR`;
+
+            const costo = Math.round(esfuerzo * salario, 2);
+            const costoLDC = Math.round(costo / ldc, 2);
+
+            // Mostrar resultados
+            document.getElementById('resultados').style.display = 'block';
+            document.getElementById('totalResult').textContent = total;
+            document.getElementById('ldcResult').textContent = ldc;
+            document.getElementById('mldcResult').textContent = mldc;
+            document.getElementById('esfuerzoResult').textContent = esfuerzoStr;
+            document.getElementById('tdResult').textContent = tdStr;
+            document.getElementById('cpResult').textContent = cpStr;
+            document.getElementById('pResult').textContent = pStr;
+            document.getElementById('costoResult').textContent = costo;
+            document.getElementById('costoLDCResult').textContent = costoLDC;
+        });
+    </script>
+
+</body>
+</html>
